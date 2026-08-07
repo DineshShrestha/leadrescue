@@ -1,0 +1,25 @@
+# Backend (Elixir/Phoenix)
+backend/_build/
+backend/deps/
+backend/.elixir_ls/
+backend/erl_crash.dump
+backend/*.ez
+backend/priv/static/assets/
+backend/assets/node_modules/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
