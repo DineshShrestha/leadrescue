@@ -3,7 +3,7 @@ defmodule LeadRescue.Repo.Migrations.CreateCompanies do
 
   def change do
     create table(:companies, primary_key: false) do
-    add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :slug, :string, null: false
 

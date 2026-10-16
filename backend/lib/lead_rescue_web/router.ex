@@ -7,7 +7,7 @@ defmodule LeadRescueWeb.Router do
 
   scope "/", LeadRescueWeb do
     pipe_through :api
-    get "/health", HealthContoller, :show
+    get "/health", HealthController, :show
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
