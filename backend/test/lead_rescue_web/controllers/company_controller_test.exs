@@ -21,4 +21,19 @@ defmodule LeadRescueWeb.CompanyControllerTest do
 
     assert is_binary(id)
   end
+
+  test "POST /api/companies returns validation errors for invalid parameters", %{conn: conn} do
+    params = %{
+      company: %{}
+    }
+
+    conn = post(conn, ~p"/api/companies", params)
+
+    assert %{
+             "errors" => %{
+               "name" => ["can't be blank"],
+               "slug" => ["can't be blank"]
+             }
+           } = json_response(conn, 422)
+  end
 end

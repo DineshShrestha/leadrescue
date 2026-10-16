@@ -15,10 +15,18 @@ defmodule LeadRescueWeb.CompanyController do
           }
         })
 
-      {:error, _changeset} ->
+      {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{errors: %{company: ["is invalid"]}})
+        |> json(%{errors: translate_errors(changeset)})
     end
+  end
+
+  defp translate_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {message, options} ->
+      Enum.reduce(options, message, fn {key, value}, translated_message ->
+        String.replace(translated_message, "%{#{key}}", to_string(value))
+      end)
+    end)
   end
 end
