@@ -10,6 +10,12 @@ defmodule LeadRescueWeb.Router do
     get "/health", HealthController, :show
   end
 
+  scope "/api", LeadRescueWeb do
+    pipe_through :api
+
+    post "/companies", CompanyController, :create
+  end
+
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:lead_rescue, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
