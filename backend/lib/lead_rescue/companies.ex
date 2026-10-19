@@ -1,6 +1,5 @@
 defmodule LeadRescue.Companies do
   alias LeadRescue.Companies.Company
-
   alias LeadRescue.Repo
 
   def create_company(attrs) do
@@ -15,5 +14,11 @@ defmodule LeadRescue.Companies do
 
   def get_company(id) do
     Repo.get(Company, id)
+  end
+
+  def update_company(company, attrs) do
+    company
+    |> Company.changeset(attrs)
+    |> Repo.update()
   end
 end

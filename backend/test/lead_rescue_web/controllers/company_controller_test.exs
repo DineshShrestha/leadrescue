@@ -86,10 +86,80 @@ defmodule LeadRescueWeb.CompanyControllerTest do
     assert id == company.id
   end
 
-  test "GET /api/companies/:id returns 404 when the company does not exists", %{conn: conn} do
+  test "GET /api/companies/:id returns 404 when the company does not exist", %{conn: conn} do
     missing_id = Ecto.UUID.generate()
 
     conn = get(conn, ~p"/api/companies/#{missing_id}")
+
+    assert %{
+             "errors" => %{
+               "detail" => "Company not found"
+             }
+           } = json_response(conn, 404)
+  end
+
+  test "PUT /api/companies/:id updates the company", %{conn: conn} do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    params = %{
+      company: %{
+        name: "Updated AS",
+        slug: "updated"
+      }
+    }
+
+    conn = put(conn, ~p"/api/companies/#{company.id}", params)
+
+    assert %{
+             "data" => %{
+               "id" => id,
+               "name" => "Updated AS",
+               "slug" => "updated"
+             }
+           } = json_response(conn, 200)
+
+    assert id == company.id
+  end
+
+  test "PUT /api/companies/:id", %{conn: conn} do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    params = %{
+      company: %{
+        name: "",
+        slug: ""
+      }
+    }
+
+    conn = put(conn, ~p"/api/companies/#{company.id}", params)
+
+    assert %{
+             "errors" => %{
+               "name" => ["can't be blank"],
+               "slug" => ["can't be blank"]
+             }
+           } = json_response(conn, 422)
+  end
+
+  test "PUT /api/companies/:id retuns 404 when the company does not exist", %{conn: conn} do
+    missing_id = Ecto.UUID.generate()
+
+    params = %{
+      company: %{
+        name: "Updated AS",
+        slug: "updated"
+      }
+    }
+
+    conn = put(conn, ~p"/api/companies/#{missing_id}", params)
 
     assert %{
              "errors" => %{

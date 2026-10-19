@@ -24,7 +24,7 @@ defmodule LeadRescue.CompaniesTest do
     end
   end
 
-  describe "list companies/0" do
+  describe "returns nil when the company does not exist" do
     test "returns all companies" do
       {:ok, first_company} =
         Companies.create_company(%{
@@ -65,10 +65,47 @@ defmodule LeadRescue.CompaniesTest do
       assert found_company.name == "Acme AS"
     end
 
-    test "returns nil when the company does not exists" do
+    test "returns nil when the company does not exist" do
       missing_id = Ecto.UUID.generate()
 
       assert Companies.get_company(missing_id) == nil
+    end
+  end
+
+  describe "update_company/2" do
+    test "updates a company with valid attributes" do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      assert {:ok, updated_company} =
+               Companies.update_company(company, %{
+                 name: "Updated AS",
+                 slug: "updated"
+               })
+
+      assert updated_company.id == company.id
+      assert updated_company.name == "Updated AS"
+      assert updated_company.slug == "updated"
+    end
+
+    test "returns an invalid changeset for invalid attributes" do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      assert {:error, changeset} =
+               Companies.update_company(company, %{
+                 name: "",
+                 slug: ""
+               })
+
+      assert "can't be blank" in errors_on(changeset).name
+      assert "can't be blank" in errors_on(changeset).slug
     end
   end
 end
