@@ -65,4 +65,36 @@ defmodule LeadRescueWeb.CompanyControllerTest do
 
     assert returned_ids == expected_ids
   end
+
+  test "GET /api/companies/:id returns the company", %{conn: conn} do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    conn = get(conn, ~p"/api/companies/#{company.id}")
+
+    assert %{
+             "data" => %{
+               "id" => id,
+               "name" => "Acme AS",
+               "slug" => "acme"
+             }
+           } = json_response(conn, 200)
+
+    assert id == company.id
+  end
+
+  test "GET /api/companies/:id returns 404 when the company does not exists", %{conn: conn} do
+    missing_id = Ecto.UUID.generate()
+
+    conn = get(conn, ~p"/api/companies/#{missing_id}")
+
+    assert %{
+             "errors" => %{
+               "detail" => "Company not found"
+             }
+           } = json_response(conn, 404)
+  end
 end

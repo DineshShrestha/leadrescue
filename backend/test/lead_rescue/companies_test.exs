@@ -43,12 +43,32 @@ defmodule LeadRescue.CompaniesTest do
       returned_ids =
         companies
         |> Enum.map(& &1.id)
-        |> IO.inspect(label: "ids")
         |> MapSet.new()
 
       expected_ids = MapSet.new([first_company.id, second_company.id])
 
       assert returned_ids == expected_ids
+    end
+  end
+
+  describe "get_company/1" do
+    test "returns a company with the given ID" do
+      {:ok, created_company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      found_company = Companies.get_company(created_company.id)
+
+      assert found_company.id == created_company.id
+      assert found_company.name == "Acme AS"
+    end
+
+    test "returns nil when the company does not exists" do
+      missing_id = Ecto.UUID.generate()
+
+      assert Companies.get_company(missing_id) == nil
     end
   end
 end

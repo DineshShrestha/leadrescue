@@ -12,4 +12,8 @@ defmodule LeadRescue.Companies do
   def list_companies do
     Repo.all(Company)
   end
+
+  def get_company(id) do
+    Repo.get(Company, id)
+  end
 end

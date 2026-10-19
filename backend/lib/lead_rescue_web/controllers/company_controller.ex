@@ -37,6 +37,24 @@ defmodule LeadRescueWeb.CompanyController do
     end
   end
 
+  def show(conn, %{"id" => id}) do
+    case Companies.get_company(id) do
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{errors: %{detail: "Company not found"}})
+
+      company ->
+        json(conn, %{
+          data: %{
+            id: company.id,
+            name: company.name,
+            slug: company.slug
+          }
+        })
+    end
+  end
+
   defp translate_errors(changeset) do
     Ecto.Changeset.traverse_errors(changeset, fn {message, options} ->
       Enum.reduce(options, message, fn {key, value}, translated_message ->

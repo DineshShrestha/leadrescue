@@ -14,6 +14,7 @@ defmodule LeadRescueWeb.Router do
     pipe_through :api
 
     get "/companies", CompanyController, :index
+    get "/companies/:id", CompanyController, :show
     post "/companies", CompanyController, :create
   end
 
