@@ -23,4 +23,32 @@ defmodule LeadRescue.CompaniesTest do
       assert "can't be blank" in errors_on(changeset).slug
     end
   end
+
+  describe "list companies/0" do
+    test "returns all companies" do
+      {:ok, first_company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      {:ok, second_company} =
+        Companies.create_company(%{
+          name: "Wayne Enterprises",
+          slug: "wayne"
+        })
+
+      companies = Companies.list_companies()
+
+      returned_ids =
+        companies
+        |> Enum.map(& &1.id)
+        |> IO.inspect(label: "ids")
+        |> MapSet.new()
+
+      expected_ids = MapSet.new([first_company.id, second_company.id])
+
+      assert returned_ids == expected_ids
+    end
+  end
 end

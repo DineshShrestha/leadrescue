@@ -8,4 +8,8 @@ defmodule LeadRescue.Companies do
     |> Company.changeset(attrs)
     |> Repo.insert()
   end
+
+  def list_companies do
+    Repo.all(Company)
+  end
 end

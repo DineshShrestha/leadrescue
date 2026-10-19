@@ -13,6 +13,7 @@ defmodule LeadRescueWeb.Router do
   scope "/api", LeadRescueWeb do
     pipe_through :api
 
+    get "/companies", CompanyController, :index
     post "/companies", CompanyController, :create
   end
 

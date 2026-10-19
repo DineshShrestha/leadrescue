@@ -2,6 +2,21 @@ defmodule LeadRescueWeb.CompanyController do
   use LeadRescueWeb, :controller
   alias LeadRescue.Companies
 
+  def index(conn, _params) do
+    companies = Companies.list_companies()
+
+    json(conn, %{
+      data:
+        Enum.map(companies, fn company ->
+          %{
+            id: company.id,
+            name: company.name,
+            slug: company.slug
+          }
+        end)
+    })
+  end
+
   def create(conn, %{"company" => company_params}) do
     case Companies.create_company(company_params) do
       {:ok, company} ->
