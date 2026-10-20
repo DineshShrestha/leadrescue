@@ -53,7 +53,7 @@ defmodule LeadRescue.AccountsTest do
       assert "can't be blank" in errors.last_name
     end
 
-    test "ignores client-supplied company adn role" do
+    test "ignores client-supplied company and role" do
       {:ok, company} =
         Companies.create_company(%{
           name: "Acme AS",
@@ -79,6 +79,43 @@ defmodule LeadRescue.AccountsTest do
 
       assert user.company_id == company.id
       assert user.role == "company_user"
+    end
+  end
+
+  describe "get_user_by_email_and_password/2" do
+    setup do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      password = "password123"
+
+      {:ok, user} =
+        Accounts.create_user(company, %{
+          email: "user@example.com",
+          password: password,
+          first_name: "Ada",
+          last_name: "Lovelace"
+        })
+
+      %{user: user, password: password}
+    end
+
+    test "returns the user for a valid email and password", %{user: user, password: password} do
+      authenticated_user = Accounts.get_user_by_email_and_password(user.email, password)
+
+      assert %User{} = authenticated_user
+      assert authenticated_user.id == user.id
+    end
+
+    test "returns nil for an incorrect password", %{user: user} do
+      assert Accounts.get_user_by_email_and_password(user.email, "wrong-password") == nil
+    end
+
+    test "returns nil for an unknown email", %{password: password} do
+      assert Accounts.get_user_by_email_and_password("unknown@example.com", password) == nil
     end
   end
 end
