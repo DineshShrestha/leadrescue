@@ -21,4 +21,8 @@ defmodule LeadRescue.Companies do
     |> Company.changeset(attrs)
     |> Repo.update()
   end
+
+  def delete_company(company) do
+    Repo.delete(company)
+  end
 end

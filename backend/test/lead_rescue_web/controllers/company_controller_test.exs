@@ -167,4 +167,29 @@ defmodule LeadRescueWeb.CompanyControllerTest do
              }
            } = json_response(conn, 404)
   end
+
+  test "DELETE /api/companies/:id deletes the company", %{conn: conn} do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    conn = delete(conn, ~p"/api/companies/#{company.id}")
+
+    assert response(conn, 204) == ""
+    assert Companies.get_company(company.id) == nil
+  end
+
+  test "DELETE /api/companies/:id returns 404 when the company does not exist", %{conn: conn} do
+    missing_id = Ecto.UUID.generate()
+
+    conn = delete(conn, ~p"/api/companies/#{missing_id}")
+
+    assert %{
+             "errors" => %{
+               "detail" => "Company not found"
+             }
+           } = json_response(conn, 404)
+  end
 end

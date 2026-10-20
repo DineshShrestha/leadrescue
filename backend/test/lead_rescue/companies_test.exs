@@ -24,7 +24,7 @@ defmodule LeadRescue.CompaniesTest do
     end
   end
 
-  describe "returns nil when the company does not exist" do
+  describe "list_companies/0" do
     test "returns all companies" do
       {:ok, first_company} =
         Companies.create_company(%{
@@ -106,6 +106,21 @@ defmodule LeadRescue.CompaniesTest do
 
       assert "can't be blank" in errors_on(changeset).name
       assert "can't be blank" in errors_on(changeset).slug
+    end
+  end
+
+  describe "delete_company/1" do
+    test "deletes the company" do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      assert {:ok, deleted_company} = Companies.delete_company(company)
+
+      assert deleted_company.id == company.id
+      assert Companies.get_company(company.id) == nil
     end
   end
 end

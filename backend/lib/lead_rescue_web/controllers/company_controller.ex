@@ -54,6 +54,24 @@ defmodule LeadRescueWeb.CompanyController do
     end
   end
 
+  def delete(conn, %{"id" => id}) do
+    case Companies.get_company(id) do
+      nil ->
+        not_found(conn)
+
+      company ->
+        case Companies.delete_company(company) do
+          {:ok, _deleted_company} ->
+            send_resp(conn, :no_content, "")
+
+          {:error, changeset} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{errors: translate_errors(changeset)})
+        end
+    end
+  end
+
   defp translate_errors(changeset) do
     Ecto.Changeset.traverse_errors(changeset, fn {message, options} ->
       Enum.reduce(options, message, fn {key, value}, translated_message ->

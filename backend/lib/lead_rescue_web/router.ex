@@ -17,6 +17,7 @@ defmodule LeadRescueWeb.Router do
     get "/companies/:id", CompanyController, :show
     post "/companies", CompanyController, :create
     put "/companies/:id", CompanyController, :update
+    delete "/companies/:id", CompanyController, :delete
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
