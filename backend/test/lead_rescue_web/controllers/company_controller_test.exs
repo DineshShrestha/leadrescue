@@ -39,6 +39,29 @@ defmodule LeadRescueWeb.CompanyControllerTest do
            } = json_response(conn, 422)
   end
 
+  test "POST /api/companies returns an error when the slug already exists", %{conn: conn} do
+    assert {:ok, _existing_company} =
+             Companies.create_company(%{
+               name: "Acme AS",
+               slug: "acme"
+             })
+
+    params = %{
+      company: %{
+        name: "Another company",
+        slug: "acme"
+      }
+    }
+
+    conn = post(conn, ~p"/api/companies", params)
+
+    assert %{
+             "errors" => %{
+               "slug" => ["has already been taken"]
+             }
+           } = json_response(conn, 422)
+  end
+
   test "GET /api/companies returns all companies", %{conn: conn} do
     {:ok, first_company} =
       Companies.create_company(%{
@@ -125,7 +148,7 @@ defmodule LeadRescueWeb.CompanyControllerTest do
     assert id == company.id
   end
 
-  test "PUT /api/companies/:id", %{conn: conn} do
+  test "PUT /api/companies/:id returns validation errors for invalid parameters", %{conn: conn} do
     {:ok, company} =
       Companies.create_company(%{
         name: "Acme AS",
@@ -149,7 +172,7 @@ defmodule LeadRescueWeb.CompanyControllerTest do
            } = json_response(conn, 422)
   end
 
-  test "PUT /api/companies/:id retuns 404 when the company does not exist", %{conn: conn} do
+  test "PUT /api/companies/:id returns 404 when the company does not exist", %{conn: conn} do
     missing_id = Ecto.UUID.generate()
 
     params = %{

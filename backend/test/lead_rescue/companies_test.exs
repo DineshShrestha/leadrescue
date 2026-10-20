@@ -22,6 +22,25 @@ defmodule LeadRescue.CompaniesTest do
       assert "can't be blank" in errors_on(changeset).name
       assert "can't be blank" in errors_on(changeset).slug
     end
+
+    test "returns an error when the slug already exists" do
+      attrs1 = %{
+        name: "Acme AS",
+        slug: "acme"
+      }
+
+      attrs2 = %{
+        name: "Acme AS",
+        slug: "acme"
+      }
+
+      assert {:ok, %Company{}} = Companies.create_company(attrs1)
+
+      assert {:error, changeset} =
+               Companies.create_company(attrs2)
+
+      assert "has already been taken" in errors_on(changeset).slug
+    end
   end
 
   describe "list_companies/0" do
