@@ -24,7 +24,7 @@ defmodule LeadRescue.Accounts.User do
 
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:email, :password, :first_name, :last_name, :role, :company_id])
+    |> cast(attrs, [:email, :password, :first_name, :last_name])
     |> validate_required([:email, :password, :first_name, :last_name])
     |> validate_length(:password, min: 8)
     |> validate_inclusion(:role, @roles)

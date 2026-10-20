@@ -217,7 +217,6 @@ defmodule LeadRescueWeb.CompanyControllerTest do
     {:ok, company} = Companies.create_company(%{name: "Acme AS", slug: "acme"})
 
     conn = put(conn, ~p"/api/companies/#{company.id}", %{})
-    IO.inspect(conn, label: "Conn")
 
     assert %{
              "errors" => %{

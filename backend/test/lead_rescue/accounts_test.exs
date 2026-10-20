@@ -1,0 +1,84 @@
+defmodule LeadRescue.AccountsTest do
+  use LeadRescue.DataCase
+
+  alias LeadRescue.Accounts
+  alias LeadRescue.Accounts.User
+  alias LeadRescue.Companies
+
+  describe "create_user/2" do
+    test "creates a company user with valid attributes" do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      attrs = %{
+        email: "user@example.com",
+        password: "password123",
+        first_name: "Ada",
+        last_name: "Lovelace"
+      }
+
+      assert {:ok, %User{} = user} = Accounts.create_user(company, attrs)
+
+      assert user.company_id == company.id
+      assert user.role == "company_user"
+      assert user.password == nil
+      assert is_binary(user.hashed_password)
+      assert Bcrypt.verify_pass("password123", user.hashed_password)
+    end
+
+    test "returns an invalid changeset for invalid attributes" do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      attrs = %{
+        email: "invalid-email",
+        password: "short",
+        first_name: "",
+        last_name: ""
+      }
+
+      assert {:error, changeset} = Accounts.create_user(company, attrs)
+
+      errors = errors_on(changeset)
+
+      assert "has invalid format" in errors.email
+      assert "should be at least 8 character(s)" in errors.password
+      assert "can't be blank" in errors.first_name
+      assert "can't be blank" in errors.last_name
+    end
+
+    test "ignores client-supplied company adn role" do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      {:ok, other_company} =
+        Companies.create_company(%{
+          name: "Other AS",
+          slug: "other"
+        })
+
+      attrs = %{
+        email: "user@example.com",
+        password: "password123",
+        first_name: "Ada",
+        last_name: "Lovelace",
+        company_id: other_company.id,
+        role: "super_admin"
+      }
+
+      assert {:ok, user} = Accounts.create_user(company, attrs)
+
+      assert user.company_id == company.id
+      assert user.role == "company_user"
+    end
+  end
+end
