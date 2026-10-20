@@ -62,6 +62,16 @@ defmodule LeadRescueWeb.CompanyControllerTest do
            } = json_response(conn, 422)
   end
 
+  test "POST /api/companies returns 400 when company parameters are missing", %{conn: conn} do
+    conn = post(conn, ~p"/api/companies", %{})
+
+    assert %{
+             "errors" => %{
+               "detail" => "Missing company parameters"
+             }
+           } = json_response(conn, 400)
+  end
+
   test "GET /api/companies returns all companies", %{conn: conn} do
     {:ok, first_company} =
       Companies.create_company(%{
@@ -201,6 +211,19 @@ defmodule LeadRescueWeb.CompanyControllerTest do
                "detail" => "Company not found"
              }
            } = json_response(conn, 404)
+  end
+
+  test "PUT /api/companies/:id returns 400 when company parameters are missing", %{conn: conn} do
+    {:ok, company} = Companies.create_company(%{name: "Acme AS", slug: "acme"})
+
+    conn = put(conn, ~p"/api/companies/#{company.id}", %{})
+    IO.inspect(conn, label: "Conn")
+
+    assert %{
+             "errors" => %{
+               "detail" => "Missing company parameters"
+             }
+           } = json_response(conn, 400)
   end
 
   test "DELETE /api/companies/:id deletes the company", %{conn: conn} do

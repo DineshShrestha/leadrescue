@@ -24,6 +24,10 @@ defmodule LeadRescueWeb.CompanyController do
     end
   end
 
+  def create(conn, _params) do
+    missing_company_params(conn)
+  end
+
   def show(conn, %{"id" => id}) do
     case Companies.get_company(id) do
       nil ->
@@ -52,6 +56,10 @@ defmodule LeadRescueWeb.CompanyController do
             |> json(%{errors: translate_errors(changeset)})
         end
     end
+  end
+
+  def update(conn, _params) do
+    missing_company_params(conn)
   end
 
   def delete(conn, %{"id" => id}) do
@@ -88,5 +96,11 @@ defmodule LeadRescueWeb.CompanyController do
     conn
     |> put_status(:not_found)
     |> json(%{errors: %{detail: "Company not found"}})
+  end
+
+  defp missing_company_params(conn) do
+    conn
+    |> put_status(:bad_request)
+    |> json(%{errors: %{detail: "Missing company parameters"}})
   end
 end
