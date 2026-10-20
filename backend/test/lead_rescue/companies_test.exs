@@ -89,6 +89,10 @@ defmodule LeadRescue.CompaniesTest do
 
       assert Companies.get_company(missing_id) == nil
     end
+
+    test "returns nil for a malformed ID" do
+      assert Companies.get_company("not-a-uuid") == nil
+    end
   end
 
   describe "update_company/2" do

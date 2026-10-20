@@ -121,6 +121,18 @@ defmodule LeadRescueWeb.CompanyControllerTest do
            } = json_response(conn, 404)
   end
 
+  test "GET /api/companies/:id returns 404 for a malformed ID", %{conn: conn} do
+    invalid_id = "not-a-uuid"
+
+    conn = get(conn, ~p"/api/companies/#{invalid_id}")
+
+    assert %{
+             "errors" => %{
+               "detail" => "Company not found"
+             }
+           } = json_response(conn, 404)
+  end
+
   test "PUT /api/companies/:id updates the company", %{conn: conn} do
     {:ok, company} =
       Companies.create_company(%{

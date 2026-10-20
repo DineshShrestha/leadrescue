@@ -13,7 +13,13 @@ defmodule LeadRescue.Companies do
   end
 
   def get_company(id) do
-    Repo.get(Company, id)
+    case Ecto.UUID.cast(id) do
+      {:ok, valid_id} ->
+        Repo.get(Company, valid_id)
+
+      :error ->
+        nil
+    end
   end
 
   def update_company(company, attrs) do
