@@ -16,6 +16,7 @@ defmodule LeadRescue.Accounts.User do
     field :role, :string, default: "company_user"
     field :active, :boolean, default: true
     field :last_login_at, :utc_datetime
+    field :confirmed_at, :utc_datetime
 
     belongs_to :company, LeadRescue.Companies.Company
 
