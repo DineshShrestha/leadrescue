@@ -118,4 +118,42 @@ defmodule LeadRescue.AccountsTest do
       assert Accounts.get_user_by_email_and_password("unknown@example.com", password) == nil
     end
   end
+
+  describe "get_user/1" do
+    test "returns the user for the existing ID" do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      {:ok, created_user} =
+        Accounts.create_user(company, %{
+          email: "user@example.com",
+          password: "password123",
+          first_name: "Ada",
+          last_name: "Lovelace"
+        })
+
+      returned_user = Accounts.get_user(created_user.id)
+
+      assert %User{} = returned_user
+      assert returned_user.id == created_user.id
+      assert returned_user.email == created_user.email
+    end
+
+    test "returns nil when the user does not exist" do
+      missing_id = Ecto.UUID.generate()
+
+      returned_user = Accounts.get_user(missing_id)
+
+      assert returned_user == nil
+    end
+
+    test "returns nil for a malformed user ID" do
+      returned_user = Accounts.get_user("not-a-uuid")
+
+      assert returned_user == nil
+    end
+  end
 end

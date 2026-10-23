@@ -23,4 +23,11 @@ defmodule LeadRescue.Accounts do
         nil
     end
   end
+
+  def get_user(id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, valid_id} -> Repo.get(User, valid_id)
+      :error -> nil
+    end
+  end
 end

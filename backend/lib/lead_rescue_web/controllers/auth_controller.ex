@@ -2,6 +2,7 @@ defmodule LeadRescueWeb.AuthController do
   use LeadRescueWeb, :controller
 
   alias LeadRescue.Accounts
+  alias LeadRescueWeb.AuthToken
 
   def login(conn, %{"email" => email, "password" => password}) do
     user = Accounts.get_user_by_email_and_password(email, password)
@@ -17,7 +18,7 @@ defmodule LeadRescueWeb.AuthController do
         })
 
       user ->
-        token = Phoenix.Token.sign(LeadRescueWeb.Endpoint, "user authentication", user.id)
+        token = AuthToken.sign(user)
 
         json(conn, %{
           token: token,
