@@ -3,6 +3,7 @@ defmodule LeadRescueWeb.AuthController do
 
   alias LeadRescue.Accounts
   alias LeadRescueWeb.AuthToken
+  alias LeadRescueWeb.UserJSON
 
   def login(conn, %{"email" => email, "password" => password}) do
     user = Accounts.get_user_by_email_and_password(email, password)
@@ -22,7 +23,7 @@ defmodule LeadRescueWeb.AuthController do
 
         json(conn, %{
           token: token,
-          user: user_data(user)
+          user: UserJSON.data(user)
         })
     end
   end
@@ -35,18 +36,5 @@ defmodule LeadRescueWeb.AuthController do
         detail: "Email and password are required"
       }
     })
-  end
-
-  defp user_data(user) do
-    %{
-      id: user.id,
-      company_id: user.company_id,
-      email: user.email,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      role: user.role,
-      active: user.active,
-      confirmed_at: user.confirmed_at
-    }
   end
 end

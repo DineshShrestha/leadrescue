@@ -5,6 +5,10 @@ defmodule LeadRescueWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :authenticated_api do
+    plug LeadRescueWeb.Plugs.AuthenticateUser
+  end
+
   scope "/", LeadRescueWeb do
     pipe_through :api
     get "/health", HealthController, :show
@@ -20,6 +24,12 @@ defmodule LeadRescueWeb.Router do
     delete "/companies/:id", CompanyController, :delete
 
     post "/auth/login", AuthController, :login
+  end
+
+  scope "/api", LeadRescueWeb do
+    pipe_through [:api, :authenticated_api]
+
+    get "/account", AccountController, :show
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
