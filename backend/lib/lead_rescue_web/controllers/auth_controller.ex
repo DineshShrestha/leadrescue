@@ -37,4 +37,8 @@ defmodule LeadRescueWeb.AuthController do
       }
     })
   end
+
+  def logout(conn, _params) do
+    send_resp(conn, :no_content, "")
+  end
 end

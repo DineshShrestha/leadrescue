@@ -24,6 +24,7 @@ defmodule LeadRescueWeb.Router do
     delete "/companies/:id", CompanyController, :delete
 
     post "/auth/login", AuthController, :login
+    delete "/auth/logout", AuthController, :logout
   end
 
   scope "/api", LeadRescueWeb do

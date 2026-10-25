@@ -102,4 +102,10 @@ defmodule LeadRescueWeb.AuthControllerTest do
              }
            } = json_response(conn, 400)
   end
+
+  test "DELETE /api/auth/logout returns no content", %{conn: conn} do
+    conn = delete(conn, "/api/auth/logout")
+
+    assert response(conn, 204) == ""
+  end
 end
