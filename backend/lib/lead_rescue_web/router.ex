@@ -23,6 +23,7 @@ defmodule LeadRescueWeb.Router do
     put "/companies/:id", CompanyController, :update
     delete "/companies/:id", CompanyController, :delete
 
+    post "/auth/register", AuthController, :register
     post "/auth/login", AuthController, :login
     delete "/auth/logout", AuthController, :logout
   end

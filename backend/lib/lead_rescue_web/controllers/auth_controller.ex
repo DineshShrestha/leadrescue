@@ -4,6 +4,8 @@ defmodule LeadRescueWeb.AuthController do
   alias LeadRescue.Accounts
   alias LeadRescueWeb.AuthToken
   alias LeadRescueWeb.UserJSON
+  alias LeadRescue.Onboarding
+  alias LeadRescueWeb.ChangesetJSON
 
   def login(conn, %{"email" => email, "password" => password}) do
     user = Accounts.get_user_by_email_and_password(email, password)
@@ -40,5 +42,28 @@ defmodule LeadRescueWeb.AuthController do
 
   def logout(conn, _params) do
     send_resp(conn, :no_content, "")
+  end
+
+  def register(conn, params) do
+    case Onboarding.register_company(params) do
+      {:ok, %{company: company, user: user}} ->
+        conn
+        |> put_status(:created)
+        |> json(%{
+          company: %{
+            id: company.id,
+            name: company.name,
+            slug: company.slug
+          },
+          user: UserJSON.data(user)
+        })
+
+      {:error, _operation, changeset, _completed_operations} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{
+          errors: ChangesetJSON.errors(changeset)
+        })
+    end
   end
 end

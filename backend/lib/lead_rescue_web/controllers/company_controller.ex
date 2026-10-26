@@ -1,6 +1,7 @@
 defmodule LeadRescueWeb.CompanyController do
   use LeadRescueWeb, :controller
   alias LeadRescue.Companies
+  alias LeadRescueWeb.ChangesetJSON
 
   def index(conn, _params) do
     companies = Companies.list_companies()
@@ -20,7 +21,7 @@ defmodule LeadRescueWeb.CompanyController do
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{errors: translate_errors(changeset)})
+        |> json(%{errors: ChangesetJSON.errors(changeset)})
     end
   end
 
@@ -53,7 +54,7 @@ defmodule LeadRescueWeb.CompanyController do
           {:error, changeset} ->
             conn
             |> put_status(:unprocessable_entity)
-            |> json(%{errors: translate_errors(changeset)})
+            |> json(%{errors: ChangesetJSON.errors(changeset)})
         end
     end
   end
@@ -75,17 +76,9 @@ defmodule LeadRescueWeb.CompanyController do
           {:error, changeset} ->
             conn
             |> put_status(:unprocessable_entity)
-            |> json(%{errors: translate_errors(changeset)})
+            |> json(%{errors: ChangesetJSON.errors(changeset)})
         end
     end
-  end
-
-  defp translate_errors(changeset) do
-    Ecto.Changeset.traverse_errors(changeset, fn {message, options} ->
-      Enum.reduce(options, message, fn {key, value}, translated_message ->
-        String.replace(translated_message, "%{#{key}}", to_string(value))
-      end)
-    end)
   end
 
   defp company_data(company) do
