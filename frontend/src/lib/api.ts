@@ -50,7 +50,18 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   if (!response.ok) {
     const err = data?.error ?? {};
-    throw new ApiError(response.status, err.code ?? "UNKNOWN_ERROR", err.message ?? "Something went wrong.", err.fields);
+    const backendErrors = data?.errors as Record<string, string | string[]> | undefined;
+    
+    const fields = backendErrors
+      ? (Object.fromEntries(
+        Object.entries(backendErrors).filter(([,messages]) => Array.isArray(messages)),
+      ) as Record<string, string[]>) : undefined;
+
+      const detail = typeof backendErrors?.detail === "string" ? backendErrors.detail : undefined;
+
+      const firstFieldMessage = fields ? Object.values(fields).flat()[0] : undefined;
+
+    throw new ApiError(response.status, err.code ?? "UNKNOWN_ERROR", err.message ?? detail ?? firstFieldMessage??  "Something went wrong.", err.fields ?? fields,);
   }
 
   return data as T;
