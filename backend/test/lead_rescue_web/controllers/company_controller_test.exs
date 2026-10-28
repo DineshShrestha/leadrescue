@@ -1,7 +1,30 @@
 defmodule LeadRescueWeb.CompanyControllerTest do
   use LeadRescueWeb.ConnCase
 
+  alias LeadRescue.Accounts.User
   alias LeadRescue.Companies
+  alias LeadRescue.Repo
+  alias LeadRescueWeb.AuthToken
+  alias LeadRescue.Accounts
+
+  setup %{conn: conn} do
+    {:ok, super_admin} =
+      %User{role: "super_admin"}
+      |> User.changeset(%{
+        email: "admin@example.com",
+        password: "password1234",
+        first_name: "Super",
+        last_name: "Admin"
+      })
+      |> Repo.insert()
+
+    token = AuthToken.sign(super_admin)
+
+    authenticated_conn =
+      put_req_header(conn, "authorization", "Bearer #{token}")
+
+    %{conn: authenticated_conn}
+  end
 
   test "POST /api/companies creates a company", %{conn: conn} do
     params = %{
@@ -248,5 +271,200 @@ defmodule LeadRescueWeb.CompanyControllerTest do
                "detail" => "Company not found"
              }
            } = json_response(conn, 404)
+  end
+
+  test "GET /api/companies returns 401 without authentication" do
+    conn =
+      build_conn()
+      |> get(~p"/api/companies")
+
+    assert %{
+             "errors" => %{
+               "detail" => "Unauthorized"
+             }
+           } = json_response(conn, 401)
+  end
+
+  test "GET /api/companies returns 403 for a company user" do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    {:ok, company_user} =
+      Accounts.create_user(company, %{
+        email: "user@example.com",
+        password: "password1234",
+        first_name: "Ada",
+        last_name: "Lovelace"
+      })
+
+    token = AuthToken.sign(company_user)
+
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> get(~p"/api/companies")
+
+    assert %{
+             "errors" => %{
+               "detail" => "Forbidden"
+             }
+           } = json_response(conn, 403)
+  end
+
+  test "GET /api/companies/:id returns 403 for a user from another company" do
+    {:ok, own_company} =
+      Companies.create_company(%{
+        name: "Own Company",
+        slug: "own-company"
+      })
+
+    {:ok, other_company} =
+      Companies.create_company(%{
+        name: "Other Company",
+        slug: "other-company"
+      })
+
+    {:ok, company_user} =
+      Accounts.create_user(own_company, %{
+        email: "user@example.com",
+        password: "password1234",
+        first_name: "Ada",
+        last_name: "Lovelace"
+      })
+
+    token = AuthToken.sign(company_user)
+
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> get(~p"/api/companies/#{other_company.id}")
+
+    assert %{
+             "errors" => %{
+               "detail" => "Forbidden"
+             }
+           } = json_response(conn, 403)
+  end
+
+  test "GET /api/companies/:id returns the user's own company" do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    {:ok, company_user} =
+      Accounts.create_user(company, %{
+        email: "user@example.com",
+        password: "password1234",
+        first_name: "Ada",
+        last_name: "Lovelace"
+      })
+
+    token = AuthToken.sign(company_user)
+
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> get(~p"/api/companies/#{company.id}")
+
+    assert %{
+             "data" => %{
+               "id" => returned_id,
+               "name" => "Acme AS",
+               "slug" => "acme"
+             }
+           } = json_response(conn, 200)
+
+    assert returned_id == company.id
+  end
+
+  test "PUT /api/companies/:id returns 403 for a company user" do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    {:ok, company_user} =
+      Accounts.create_user(company, %{
+        email: "user@example.com",
+        password: "password1234",
+        first_name: "Ada",
+        last_name: "Lovelace"
+      })
+
+    token = AuthToken.sign(company_user)
+
+    params = %{
+      company: %{
+        name: "Changed Company",
+        slug: "changed-company"
+      }
+    }
+
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> put(~p"/api/companies/#{company.id}", params)
+
+    assert %{
+             "errors" => %{
+               "detail" => "Forbidden"
+             }
+           } = json_response(conn, 403)
+
+    unchanged_company = Companies.get_company(company.id)
+
+    assert unchanged_company.name == "Acme AS"
+    assert unchanged_company.slug == "acme"
+  end
+
+  test "PUT /api/companies/:id allows a company admin to update their own company" do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    {:ok, company_admin} =
+      %User{
+        company_id: company.id,
+        role: "company_admin"
+      }
+      |> User.changeset(%{
+        email: "admin@acme.example",
+        password: "password1234",
+        first_name: "Ada",
+        last_name: "Admin"
+      })
+      |> Repo.insert()
+
+    token = AuthToken.sign(company_admin)
+
+    params = %{
+      company: %{
+        name: "Updated Acme AS",
+        slug: "updated-acme"
+      }
+    }
+
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> put(~p"/api/companies/#{company.id}", params)
+
+    assert %{
+             "data" => %{
+               "id" => returned_id,
+               "name" => "Updated Acme AS",
+               "slug" => "updated-acme"
+             }
+           } = json_response(conn, 200)
+
+    assert returned_id == company.id
   end
 end

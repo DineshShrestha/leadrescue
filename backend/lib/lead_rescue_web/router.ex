@@ -9,6 +9,10 @@ defmodule LeadRescueWeb.Router do
     plug LeadRescueWeb.Plugs.AuthenticateUser
   end
 
+  pipeline :super_admin_api do
+    plug LeadRescueWeb.Plugs.RequireRole, roles: ["super_admin"]
+  end
+
   scope "/", LeadRescueWeb do
     pipe_through :api
     get "/health", HealthController, :show
@@ -16,12 +20,6 @@ defmodule LeadRescueWeb.Router do
 
   scope "/api", LeadRescueWeb do
     pipe_through :api
-
-    get "/companies", CompanyController, :index
-    get "/companies/:id", CompanyController, :show
-    post "/companies", CompanyController, :create
-    put "/companies/:id", CompanyController, :update
-    delete "/companies/:id", CompanyController, :delete
 
     post "/auth/register", AuthController, :register
     post "/auth/login", AuthController, :login
@@ -32,6 +30,16 @@ defmodule LeadRescueWeb.Router do
     pipe_through [:api, :authenticated_api]
 
     get "/account", AccountController, :show
+    get "/companies/:id", CompanyController, :show
+    put "/companies/:id", CompanyController, :update
+  end
+
+  scope "/api", LeadRescueWeb do
+    pipe_through [:api, :authenticated_api, :super_admin_api]
+
+    get "/companies", CompanyController, :index
+    post "/companies", CompanyController, :create
+    delete "/companies/:id", CompanyController, :delete
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

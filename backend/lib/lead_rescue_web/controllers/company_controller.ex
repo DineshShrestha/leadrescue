@@ -30,31 +30,43 @@ defmodule LeadRescueWeb.CompanyController do
   end
 
   def show(conn, %{"id" => id}) do
+    current_user = conn.assigns.current_user
+
     case Companies.get_company(id) do
       nil ->
         not_found(conn)
 
       company ->
-        json(conn, %{data: company_data(company)})
+        if can_view_company?(current_user, company) do
+          json(conn, %{data: company_data(company)})
+        else
+          forbidden(conn)
+        end
     end
   end
 
   def update(conn, %{"id" => id, "company" => company_params}) do
+    current_user = conn.assigns.current_user
+
     case Companies.get_company(id) do
       nil ->
         not_found(conn)
 
       company ->
-        case Companies.update_company(company, company_params) do
-          {:ok, updated_company} ->
-            json(conn, %{
-              data: company_data(updated_company)
-            })
+        if can_update_company?(current_user, company) do
+          case Companies.update_company(company, company_params) do
+            {:ok, updated_company} ->
+              json(conn, %{
+                data: company_data(updated_company)
+              })
 
-          {:error, changeset} ->
-            conn
-            |> put_status(:unprocessable_entity)
-            |> json(%{errors: ChangesetJSON.errors(changeset)})
+            {:error, changeset} ->
+              conn
+              |> put_status(:unprocessable_entity)
+              |> json(%{errors: ChangesetJSON.errors(changeset)})
+          end
+        else
+          forbidden(conn)
         end
     end
   end
@@ -96,4 +108,24 @@ defmodule LeadRescueWeb.CompanyController do
     |> put_status(:bad_request)
     |> json(%{errors: %{detail: "Missing company parameters"}})
   end
+
+  defp can_view_company?(%{role: "super_admin"}, _company), do: true
+
+  defp can_view_company?(user, company) do
+    user.company_id == company.id
+  end
+
+  defp forbidden(conn) do
+    conn
+    |> put_status(:forbidden)
+    |> json(%{errors: %{detail: "Forbidden"}})
+  end
+
+  defp can_update_company?(%{role: "super_admin"}, _company), do: true
+
+  defp can_update_company?(%{role: "company_admin"} = user, company) do
+    user.company_id == company.id
+  end
+
+  defp can_update_company?(_user, _company), do: false
 end
