@@ -31,6 +31,8 @@ config :lead_rescue, LeadRescueWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :lead_rescue, LeadRescue.Mailer, adapter: Swoosh.Adapters.Local
 
+config :lead_rescue, :cors_origins, ["http://localhost:5173"]
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

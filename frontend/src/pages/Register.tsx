@@ -81,7 +81,7 @@ export default function Register() {
           <input
             type="password"
             required
-            minLength={12}
+            minLength={8}
             autoComplete="new-password"
             value={form.password}
             onChange={(e) => update("password", e.target.value)}

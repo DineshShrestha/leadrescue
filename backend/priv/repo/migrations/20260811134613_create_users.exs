@@ -4,7 +4,7 @@ defmodule LeadRescue.Repo.Migrations.CreateUsers do
   def change do
     create table(:users, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :company_id, references(:companies, type: :binary_id, on_delete: :delete_all) 
+      add :company_id, references(:companies, type: :binary_id, on_delete: :delete_all)
       add :email, :string, null: false
       add :hashed_password, :string, null: false
       add :first_name, :string, null: false
