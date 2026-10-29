@@ -24,6 +24,8 @@ defmodule LeadRescueWeb.Router do
     post "/auth/register", AuthController, :register
     post "/auth/login", AuthController, :login
     delete "/auth/logout", AuthController, :logout
+
+    post "/public/companies/:slug/leads", LeadController, :create
   end
 
   scope "/api", LeadRescueWeb do
