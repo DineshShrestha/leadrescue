@@ -54,4 +54,48 @@ defmodule LeadRescue.LeadsTest do
     assert "has invalid format" in errors.email
     assert "can't be blank" in errors.message
   end
+
+  describe "list_leads/1" do
+    test "returns only leads belonging to the given company" do
+      {:ok, first_company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      {:ok, second_company} =
+        Companies.create_company(%{
+          name: "Wayne Enterprises",
+          slug: "wayne"
+        })
+
+      {:ok, first_lead} =
+        Leads.create_lead(first_company, %{
+          name: "Jane Doe",
+          email: "jane@example.com",
+          message: "I need help"
+        })
+
+      {:ok, _other_lead} =
+        Leads.create_lead(second_company, %{
+          name: "Bruce Wayne",
+          email: "bruce@example.com",
+          message: "I need another service"
+        })
+
+      returned_leads = Leads.list_leads(first_company)
+
+      assert Enum.map(returned_leads, & &1.id) == [first_lead.id]
+    end
+
+    test "returns an empty list when the company has no leads" do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Empty Company",
+          slug: "empty-company"
+        })
+
+      assert Leads.list_leads(company) == []
+    end
+  end
 end
