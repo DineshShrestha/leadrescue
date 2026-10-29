@@ -65,6 +65,11 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  cors_origins =
+    System.get_env("CORS_ORIGINS", "")
+    |> String.split(",", trim: true)
+
+  config :lead_rescue, :cors_origins, cors_origins
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key
