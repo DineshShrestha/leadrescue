@@ -29,7 +29,9 @@ export default function Login() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-4">
-      <h1 className="mb-6 text-2xl font-semibold text-slate-900">Logg inn på LeadRescue</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-slate-900">
+        Logg inn på LeadRescue
+      </h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         <label className="flex flex-col gap-1 text-sm font-medium text-slate-700">
           E-post

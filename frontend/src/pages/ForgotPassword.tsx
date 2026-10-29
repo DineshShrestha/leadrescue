@@ -11,7 +11,11 @@ export default function ForgotPassword() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await apiRequest("/api/auth/reset-password", { method: "POST", body: { email }, authenticated: false });
+      await apiRequest("/api/auth/reset-password", {
+        method: "POST",
+        body: { email },
+        authenticated: false,
+      });
     } finally {
       setSubmitting(false);
       setSent(true);
@@ -20,14 +24,21 @@ export default function ForgotPassword() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-4">
-      <h1 className="mb-6 text-2xl font-semibold text-slate-900">Glemt passord</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-slate-900">
+        Glemt passord
+      </h1>
 
       {sent ? (
         <p className="text-sm text-slate-700">
-          Hvis e-posten finnes hos oss, sender vi deg instruksjoner for å tilbakestille passordet.
+          Hvis e-posten finnes hos oss, sender vi deg instruksjoner for å
+          tilbakestille passordet.
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-4"
+          noValidate
+        >
           <label className="flex flex-col gap-1 text-sm font-medium text-slate-700">
             E-post
             <input

@@ -15,7 +15,12 @@ export class ApiError extends Error {
   status: number;
   fields?: Record<string, string[]>;
 
-  constructor(status: number, code: string, message: string, fields?: Record<string, string[]>) {
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    fields?: Record<string, string[]>,
+  ) {
     super(message);
     this.status = status;
     this.code = code;
@@ -29,10 +34,15 @@ type RequestOptions = {
   authenticated?: boolean;
 };
 
-export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+export async function apiRequest<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
   const { method = "GET", body, authenticated = true } = options;
 
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   if (authenticated) {
     const token = getToken();
     if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -49,29 +59,34 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-  const err = data?.error ?? {};
-  const backendErrors = data?.errors as Record<string, string | string[]> | undefined;
+    const err = data?.error ?? {};
+    const backendErrors = data?.errors as
+      Record<string, string | string[]> | undefined;
 
-  const fields = backendErrors
-    ? (Object.fromEntries(
-        Object.entries(backendErrors).filter(([, messages]) => Array.isArray(messages)),
-      ) as Record<string, string[]>)
-    : undefined;
+    const fields = backendErrors
+      ? (Object.fromEntries(
+          Object.entries(backendErrors).filter(([, messages]) =>
+            Array.isArray(messages),
+          ),
+        ) as Record<string, string[]>)
+      : undefined;
 
-  const detail =
-    typeof backendErrors?.detail === "string" ? backendErrors.detail : undefined;
+    const detail =
+      typeof backendErrors?.detail === "string"
+        ? backendErrors.detail
+        : undefined;
 
-  const firstFieldMessage = fields
-    ? Object.values(fields).flat()[0]
-    : undefined;
+    const firstFieldMessage = fields
+      ? Object.values(fields).flat()[0]
+      : undefined;
 
-  throw new ApiError(
-    response.status,
-    err.code ?? "UNKNOWN_ERROR",
-    err.message ?? detail ?? firstFieldMessage ?? "Something went wrong.",
-    err.fields ?? fields,
-  );
-}
+    throw new ApiError(
+      response.status,
+      err.code ?? "UNKNOWN_ERROR",
+      err.message ?? detail ?? firstFieldMessage ?? "Something went wrong.",
+      err.fields ?? fields,
+    );
+  }
 
   return data as T;
 }

@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { apiRequest, getToken, setToken } from "../lib/api";
 
 export type Role = "super_admin" | "company_admin" | "company_user";
@@ -52,11 +58,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function login(email: string, password: string) {
-    const data = await apiRequest<{ token: string; user: User }>("/api/auth/login", {
-      method: "POST",
-      body: { email, password },
-      authenticated: false,
-    });
+    const data = await apiRequest<{ token: string; user: User }>(
+      "/api/auth/login",
+      {
+        method: "POST",
+        body: { email, password },
+        authenticated: false,
+      },
+    );
     setToken(data.token);
     setUser(data.user);
   }

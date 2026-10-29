@@ -21,7 +21,10 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/privacy" element={<Placeholder title="Personvern" />} />
           <Route path="/terms" element={<Placeholder title="Vilkår" />} />
-          <Route path="/r/:companySlug" element={<Placeholder title="Kontaktskjema" />} />
+          <Route
+            path="/r/:companySlug"
+            element={<Placeholder title="Kontaktskjema" />}
+          />
 
           <Route
             path="/app"
