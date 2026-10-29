@@ -4,6 +4,7 @@ defmodule LeadRescue.AccountsTest do
   alias LeadRescue.Accounts
   alias LeadRescue.Accounts.User
   alias LeadRescue.Companies
+  alias LeadRescue.Repo
 
   describe "create_user/2" do
     test "creates a company user with valid attributes" do
@@ -116,6 +117,14 @@ defmodule LeadRescue.AccountsTest do
 
     test "returns nil for an unknown email", %{password: password} do
       assert Accounts.get_user_by_email_and_password("unknown@example.com", password) == nil
+    end
+
+    test "returns nil for an inactive user", %{user: user, password: password} do
+      user
+      |> Ecto.Changeset.change(active: false)
+      |> Repo.update!()
+
+      assert Accounts.get_user_by_email_and_password(user.email, password) == nil
     end
   end
 

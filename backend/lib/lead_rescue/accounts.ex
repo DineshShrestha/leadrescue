@@ -8,20 +8,26 @@ defmodule LeadRescue.Accounts do
     |> Repo.insert()
   end
 
-  def get_user_by_email_and_password(email, password) do
+  def get_user_by_email_and_password(email, password)
+      when is_binary(email) and is_binary(password) do
     user = Repo.get_by(User, email: email)
 
     cond do
-      user && Bcrypt.verify_pass(password, user.hashed_password) ->
-        user
-
-      user ->
-        nil
-
-      true ->
+      user == nil ->
         Bcrypt.no_user_verify()
         nil
+
+      Bcrypt.verify_pass(password, user.hashed_password) and user.active ->
+        user
+
+      true ->
+        nil
     end
+  end
+
+  def get_user_by_email_and_password(_email, _password) do
+    Bcrypt.no_user_verify()
+    nil
   end
 
   def get_user(id) do

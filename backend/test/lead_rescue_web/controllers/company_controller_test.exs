@@ -467,4 +467,56 @@ defmodule LeadRescueWeb.CompanyControllerTest do
 
     assert returned_id == company.id
   end
+
+  test "PUT /api/companies/:id returns 403 when a company admin updates another company" do
+    {:ok, own_company} =
+      Companies.create_company(%{
+        name: "Own Company",
+        slug: "own-company"
+      })
+
+    {:ok, other_company} =
+      Companies.create_company(%{
+        name: "Other Company",
+        slug: "other-company"
+      })
+
+    {:ok, company_admin} =
+      %User{
+        company_id: own_company.id,
+        role: "company_admin"
+      }
+      |> User.changeset(%{
+        email: "admin@own.example",
+        password: "password1234",
+        first_name: "Ada",
+        last_name: "Lovelace"
+      })
+      |> Repo.insert()
+
+    token = AuthToken.sign(company_admin)
+
+    params = %{
+      company: %{
+        name: "Illegally Changed",
+        slug: "illegally-changed"
+      }
+    }
+
+    conn =
+      build_conn()
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> put(~p"/api/companies/#{other_company.id}", params)
+
+    assert %{
+             "errors" => %{
+               "detail" => "Forbidden"
+             }
+           } = json_response(conn, 403)
+
+    unchanged_company = Companies.get_company(other_company.id)
+
+    assert unchanged_company.name == "Other Company"
+    assert unchanged_company.slug == "other-company"
+  end
 end

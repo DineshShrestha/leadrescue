@@ -4,6 +4,7 @@ defmodule LeadRescueWeb.AccountControllerTest do
   alias LeadRescue.Accounts
   alias LeadRescueWeb.AuthToken
   alias LeadRescue.Accounts.User
+  alias LeadRescue.Repo
 
   test "GET /api/account returns 401 without authentication token", %{conn: conn} do
     conn = get(conn, ~p"/api/account")
@@ -70,6 +71,39 @@ defmodule LeadRescueWeb.AccountControllerTest do
   test "GET /api/account returns 401 when the token user does not exist", %{conn: conn} do
     missing_user = %User{id: Ecto.UUID.generate()}
     token = AuthToken.sign(missing_user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> get(~p"/api/account")
+
+    assert %{
+             "errors" => %{
+               "detail" => "Unauthorized"
+             }
+           } = json_response(conn, 401)
+  end
+
+  test "GET /api/account returns 401 for an inactive user token", %{conn: conn} do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    {:ok, user} =
+      Accounts.create_user(company, %{
+        email: "user@example.com",
+        password: "password1234",
+        first_name: "Ada",
+        last_name: "Lovelace"
+      })
+
+    user
+    |> Ecto.Changeset.change(active: false)
+    |> Repo.update!()
+
+    token = AuthToken.sign(user)
 
     conn =
       conn
