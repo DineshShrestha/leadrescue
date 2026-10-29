@@ -23,10 +23,16 @@ export default function Register() {
     setError(null);
     setSubmitting(true);
     try {
-      await apiRequest("/api/auth/register", { method: "POST", body: form, authenticated: false });
+      await apiRequest("/api/auth/register", {
+        method: "POST",
+        body: form,
+        authenticated: false,
+      });
       navigate("/login", { state: { registered: true } });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Kunne ikke registrere firma.");
+      setError(
+        err instanceof ApiError ? err.message : "Kunne ikke registrere firma.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -34,8 +40,12 @@ export default function Register() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-4 py-10">
-      <h1 className="mb-2 text-2xl font-semibold text-slate-900">Start gratis prøveperiode</h1>
-      <p className="mb-6 text-sm text-slate-600">14 dager, ingen bindingstid.</p>
+      <h1 className="mb-2 text-2xl font-semibold text-slate-900">
+        Start gratis prøveperiode
+      </h1>
+      <p className="mb-6 text-sm text-slate-600">
+        14 dager, ingen bindingstid.
+      </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         <label className="flex flex-col gap-1 text-sm font-medium text-slate-700">
           Firmanavn
