@@ -98,4 +98,51 @@ defmodule LeadRescue.LeadsTest do
       assert Leads.list_leads(company) == []
     end
   end
+
+  describe "get_lead/2" do
+    test "returns the lead when it belongs to the company" do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      {:ok, created_lead} =
+        Leads.create_lead(company, %{
+          name: "Jane Doe",
+          email: "jane@example.com",
+          message: "I need help"
+        })
+
+      returned_lead = Leads.get_lead(company, created_lead.id)
+
+      assert returned_lead.id == created_lead.id
+      assert returned_lead.company_id == company.id
+    end
+
+    test "returns nil when the lead belongs to another company" do
+      {:ok, first_company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      {:ok, second_company} =
+        Companies.create_company(%{
+          name: "Wayne Enterprises",
+          slug: "wayne"
+        })
+
+      {:ok, second_company_lead} =
+        Leads.create_lead(second_company, %{
+          name: "Bruce Wayne",
+          email: "bruce@example.com",
+          message: "I need help"
+        })
+
+      returned_lead = Leads.get_lead(first_company, second_company_lead.id)
+
+      assert returned_lead == nil
+    end
+  end
 end

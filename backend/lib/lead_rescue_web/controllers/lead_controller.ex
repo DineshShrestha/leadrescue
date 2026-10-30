@@ -40,6 +40,21 @@ defmodule LeadRescueWeb.LeadController do
     json(conn, %{data: Enum.map(leads, &LeadJSON.data/1)})
   end
 
+  def show(conn, %{"id" => lead_id}) do
+    current_user = conn.assigns.current_user
+    company = Companies.get_company(current_user.company_id)
+
+    case Leads.get_lead(company, lead_id) do
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{errors: %{detail: "Lead not found"}})
+
+      lead ->
+        json(conn, %{data: LeadJSON.data(lead)})
+    end
+  end
+
   defp company_not_found(conn) do
     conn
     |> put_status(:not_found)

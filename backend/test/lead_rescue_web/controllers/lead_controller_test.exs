@@ -158,4 +158,89 @@ defmodule LeadRescueWeb.LeadControllerTest do
              }
            } = json_response(conn, 401)
   end
+
+  test "GET /api/leads/:id returns a lead belonging to the authenticated user's company", %{
+    conn: conn
+  } do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    {:ok, user} =
+      Accounts.create_user(company, %{
+        email: "user@example.com",
+        password: "password1234",
+        first_name: "Ada",
+        last_name: "Lovelace"
+      })
+
+    {:ok, lead} =
+      Leads.create_lead(company, %{
+        name: "Jane Doe",
+        email: "jane@example.com",
+        message: "I need help"
+      })
+
+    token = AuthToken.sign(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> get(~p"/api/leads/#{lead.id}")
+
+    assert %{
+             "data" => %{
+               "id" => lead_id,
+               "company_id" => company_id,
+               "name" => "Jane Doe"
+             }
+           } = json_response(conn, 200)
+
+    assert lead_id == lead.id
+    assert company_id == company.id
+  end
+
+  test "GET /api/leads/:id returns 404 for another company's lead", %{conn: conn} do
+    {:ok, first_company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    {:ok, second_company} =
+      Companies.create_company(%{
+        name: "Sayne Enterprises",
+        slug: "wayne"
+      })
+
+    {:ok, first_company_user} =
+      Accounts.create_user(first_company, %{
+        email: "user@example.com",
+        password: "password1234",
+        first_name: "Ada",
+        last_name: "Lovelace"
+      })
+
+    {:ok, second_company_lead} =
+      Leads.create_lead(second_company, %{
+        name: "Bruce Wayne",
+        email: "bruce@example.com",
+        message: "Private enquiry"
+      })
+
+    token = AuthToken.sign(first_company_user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> get(~p"/api/leads/#{second_company_lead.id}")
+
+    assert %{
+             "errors" => %{
+               "detail" => "Lead not found"
+             }
+           } = json_response(conn, 404)
+  end
 end
