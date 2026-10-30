@@ -32,6 +32,7 @@ defmodule LeadRescueWeb.Router do
     pipe_through [:api, :authenticated_api]
 
     get "/account", AccountController, :show
+    get "/leads", LeadController, :index
     get "/companies/:id", CompanyController, :show
     put "/companies/:id", CompanyController, :update
   end

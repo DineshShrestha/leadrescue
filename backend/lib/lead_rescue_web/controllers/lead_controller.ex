@@ -32,6 +32,14 @@ defmodule LeadRescueWeb.LeadController do
     |> json(%{errors: %{detail: "Missing lead parameters"}})
   end
 
+  def index(conn, _params) do
+    current_user = conn.assigns.current_user
+    company = Companies.get_company(current_user.company_id)
+    leads = Leads.list_leads(company)
+
+    json(conn, %{data: Enum.map(leads, &LeadJSON.data/1)})
+  end
+
   defp company_not_found(conn) do
     conn
     |> put_status(:not_found)

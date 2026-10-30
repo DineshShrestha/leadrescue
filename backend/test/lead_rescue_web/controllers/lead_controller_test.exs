@@ -2,6 +2,9 @@ defmodule LeadRescueWeb.LeadControllerTest do
   use LeadRescueWeb.ConnCase
 
   alias LeadRescue.Companies
+  alias LeadRescue.Accounts
+  alias LeadRescueWeb.AuthToken
+  alias LeadRescue.Leads
 
   test "POST /api/public/companies/:slug/leads creates a lead", %{conn: conn} do
     {:ok, company} =
@@ -97,5 +100,62 @@ defmodule LeadRescueWeb.LeadControllerTest do
     assert %{
              "errors" => %{"detail" => "Missing lead parameters"}
            } = json_response(conn, 400)
+  end
+
+  test "GET /api/leads returns only the authenticated user's company leads", %{conn: conn} do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    {:ok, other_company} =
+      Companies.create_company(%{
+        name: "Wayne Enterprises",
+        slug: "wayne"
+      })
+
+    {:ok, user} =
+      Accounts.create_user(company, %{
+        email: "user@example.com",
+        password: "password1234",
+        first_name: "Ada",
+        last_name: "Lovelace"
+      })
+
+    {:ok, own_lead} =
+      Leads.create_lead(company, %{
+        name: "Jane Doe",
+        email: "jane@example.com",
+        message: "I need help"
+      })
+
+    {:ok, _other_lead} =
+      Leads.create_lead(other_company, %{
+        name: "Bruce Wayne",
+        email: "bruce@example.com",
+        message: "Another enquiry"
+      })
+
+    token = AuthToken.sign(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> get(~p"/api/leads")
+
+    assert %{"data" => leads} = json_response(conn, 200)
+
+    assert Enum.map(leads, & &1["id"]) == [own_lead.id]
+  end
+
+  test "GET /api/leads retuns 401 without authentication", %{conn: conn} do
+    conn = get(conn, ~p"/api/leads")
+
+    assert %{
+             "errors" => %{
+               "detail" => "Unauthorized"
+             }
+           } = json_response(conn, 401)
   end
 end
