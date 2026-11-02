@@ -519,4 +519,17 @@ defmodule LeadRescueWeb.CompanyControllerTest do
     assert unchanged_company.name == "Other Company"
     assert unchanged_company.slug == "other-company"
   end
+
+  test "GET /api/public/companies/:slug returns public company details", %{conn: conn} do
+    {:ok, company} = Companies.create_company(%{name: "Acme AS", slug: "acme"})
+
+    conn = get(conn, ~p"/api/public/companies/#{company.slug}")
+
+    assert %{"data" => %{"name" => "Acme AS", "slug" => "acme"}} = json_response(conn, 200)
+  end
+
+  test "GET /api/public/companies/:slug returns 404 for an unknown company", %{conn: conn} do
+    conn = get(conn, ~p"/api/public/companies/unknown")
+    assert %{"errors" => %{"detail" => "Company not found"}} = json_response(conn, 404)
+  end
 end

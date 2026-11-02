@@ -8,7 +8,9 @@ defmodule LeadRescueWeb.LeadJSON do
       phone: lead.phone,
       message: lead.message,
       status: lead.status,
-      source: lead.source
+      source: lead.source,
+      inserted_at: lead.inserted_at,
+      updated_at: lead.updated_at
     }
   end
 end

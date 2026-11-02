@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { apiRequest, ApiError } from "../lib/api";
 
@@ -11,6 +11,21 @@ export default function LeadIntake() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [companyName, setCompanyName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!companySlug) return;
+    apiRequest<{ data: { name: string } }>(
+      `/api/public/companies/${encodeURIComponent(companySlug)}`,
+      { authenticated: false },
+    )
+      .then(({ data }) => setCompanyName(data.name))
+      .catch(() =>
+        setError(
+          "Denne kontaktlenken finnes ikke. Kontroller adressen og prøv igjen.",
+        ),
+      );
+  }, [companySlug]);
 
   function update(key: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -82,7 +97,9 @@ export default function LeadIntake() {
   return (
     <main className="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-4 py-12">
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-sm font-medium text-slate-500">Kontakt oss</p>
+        <p className="text-sm font-medium text-slate-500">
+          {companyName ? `Kontakt ${companyName}` : "Kontakt oss"}
+        </p>
         <h1 className="mt-1 text-2xl font-semibold text-slate-900">
           Hva kan vi hjelpe deg med?
         </h1>

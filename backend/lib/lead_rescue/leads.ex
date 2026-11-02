@@ -12,6 +12,7 @@ defmodule LeadRescue.Leads do
   def list_leads(company) do
     Lead
     |> where([lead], lead.company_id == ^company.id)
+    |> order_by([lead], desc: lead.inserted_at)
     |> Repo.all()
   end
 

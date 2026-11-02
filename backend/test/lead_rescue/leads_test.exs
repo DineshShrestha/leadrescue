@@ -97,6 +97,23 @@ defmodule LeadRescue.LeadsTest do
 
       assert Leads.list_leads(company) == []
     end
+
+    test "returns newest leads first" do
+      {:ok, company} = Companies.create_company(%{name: "Acme AS", slug: "acme"})
+
+      {:ok, older_lead} =
+        Leads.create_lead(company, %{name: "Older", email: "old@example.com", message: "First"})
+
+      older_time = ~U[2026-01-01 10:00:00Z]
+
+      from(lead in Lead, where: lead.id == ^older_lead.id)
+      |> Repo.update_all(set: [inserted_at: older_time])
+
+      {:ok, newer_lead} =
+        Leads.create_lead(company, %{name: "Newer", email: "new@example.com", message: "Second"})
+
+      assert Enum.map(Leads.list_leads(company), & &1.id) == [newer_lead.id, older_lead.id]
+    end
   end
 
   describe "get_lead/2" do

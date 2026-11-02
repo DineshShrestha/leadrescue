@@ -7,4 +7,6 @@ export type Lead = {
   message: string;
   status: "new" | "contacted" | "qualified" | "won" | "lost";
   source: string;
+  inserted_at: string;
+  updated_at: string;
 };

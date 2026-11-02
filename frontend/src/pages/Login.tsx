@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { ApiError } from "../lib/api";
 
 export default function Login() {
@@ -71,10 +71,7 @@ export default function Login() {
         </button>
       </form>
 
-      <div className="mt-4 flex justify-between text-sm text-slate-600">
-        <Link to="/forgot-password" className="underline">
-          Glemt passord?
-        </Link>
+      <div className="mt-4 flex justify-end text-sm text-slate-600">
         <Link to="/register" className="underline">
           Registrer firma
         </Link>
