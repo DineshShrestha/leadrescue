@@ -24,12 +24,18 @@ defmodule LeadRescueWeb.Router do
     post "/auth/register", AuthController, :register
     post "/auth/login", AuthController, :login
     delete "/auth/logout", AuthController, :logout
+
+    post "/public/companies/:slug/leads", LeadController, :create
+    get "/public/companies/:slug", CompanyController, :public_show
   end
 
   scope "/api", LeadRescueWeb do
     pipe_through [:api, :authenticated_api]
 
     get "/account", AccountController, :show
+    get "/leads", LeadController, :index
+    get "/leads/:id", LeadController, :show
+    put "/leads/:id", LeadController, :update
     get "/companies/:id", CompanyController, :show
     put "/companies/:id", CompanyController, :update
   end

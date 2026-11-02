@@ -1,0 +1,31 @@
+defmodule LeadRescue.Leads do
+  alias LeadRescue.Leads.Lead
+  alias LeadRescue.Repo
+  import Ecto.Query
+
+  def create_lead(company, attrs) do
+    %Lead{company_id: company.id}
+    |> Lead.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def list_leads(company) do
+    Lead
+    |> where([lead], lead.company_id == ^company.id)
+    |> order_by([lead], desc: lead.inserted_at)
+    |> Repo.all()
+  end
+
+  def get_lead(company, lead_id) do
+    Repo.get_by(Lead,
+      id: lead_id,
+      company_id: company.id
+    )
+  end
+
+  def update_lead_status(%Lead{} = lead, status) do
+    lead
+    |> Lead.status_changeset(%{status: status})
+    |> Repo.update()
+  end
+end

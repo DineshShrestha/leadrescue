@@ -146,4 +146,21 @@ defmodule LeadRescue.CompaniesTest do
       assert Companies.get_company(company.id) == nil
     end
   end
+
+  describe "get_company_by_slug/1" do
+    test "returns the company for an existing slug" do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      returned_company = Companies.get_company_by_slug("acme")
+      assert returned_company.id == company.id
+    end
+
+    test "returns nil for an unknown slug" do
+      assert Companies.get_company_by_slug("unknown") == nil
+    end
+  end
 end

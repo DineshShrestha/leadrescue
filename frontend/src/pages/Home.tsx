@@ -18,10 +18,10 @@ export default function Home() {
           Start gratis prøveperiode
         </Link>
         <Link
-          to="/pricing"
+          to="/login"
           className="rounded-md border border-slate-300 px-5 py-3 font-medium text-slate-900"
         >
-          Se priser
+          Logg inn
         </Link>
       </div>
     </div>

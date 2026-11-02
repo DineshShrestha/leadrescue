@@ -31,4 +31,10 @@ defmodule LeadRescue.Companies do
   def delete_company(company) do
     Repo.delete(company)
   end
+
+  def get_company_by_slug(slug) when is_binary(slug) do
+    Repo.get_by(Company, slug: slug)
+  end
+
+  def get_company_by_slug(_slug), do: nil
 end

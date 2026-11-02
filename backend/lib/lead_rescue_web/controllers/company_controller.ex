@@ -45,6 +45,13 @@ defmodule LeadRescueWeb.CompanyController do
     end
   end
 
+  def public_show(conn, %{"slug" => slug}) do
+    case Companies.get_company_by_slug(slug) do
+      nil -> not_found(conn)
+      company -> json(conn, %{data: %{name: company.name, slug: company.slug}})
+    end
+  end
+
   def update(conn, %{"id" => id, "company" => company_params}) do
     current_user = conn.assigns.current_user
 
@@ -94,7 +101,22 @@ defmodule LeadRescueWeb.CompanyController do
   end
 
   defp company_data(company) do
-    %{id: company.id, name: company.name, slug: company.slug}
+    %{
+      id: company.id,
+      name: company.name,
+      slug: company.slug,
+      organization_number: company.organization_number,
+      email: company.email,
+      phone: company.phone,
+      website: company.website,
+      address: company.address,
+      postcode: company.postcode,
+      city: company.city,
+      timezone: company.timezone,
+      subscription_status: company.subscription_status,
+      subscription_plan: company.subscription_plan,
+      trial_ends_at: company.trial_ends_at
+    }
   end
 
   defp not_found(conn) do

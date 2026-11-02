@@ -1,0 +1,190 @@
+defmodule LeadRescue.LeadsTest do
+  use LeadRescue.DataCase
+
+  alias LeadRescue.Companies
+  alias LeadRescue.Leads
+  alias LeadRescue.Leads.Lead
+
+  test "create_lead/2 creates a lead for the trusted company" do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    clinet_company_id = Ecto.UUID.generate()
+
+    attrs = %{
+      name: "Jane Doe",
+      email: "jane@example.com",
+      message: "I need help with my projects",
+      company_id: clinet_company_id,
+      status: "won",
+      source: "untrusted"
+    }
+
+    assert {:ok, %Lead{} = lead} =
+             Leads.create_lead(company, attrs)
+
+    assert lead.company_id == company.id
+    assert lead.company_id != clinet_company_id
+    assert lead.status == "new"
+    assert lead.source == "contact_form"
+    assert lead.phone == nil
+  end
+
+  test "create_lead/2 returns validation errors for invalid attributes" do
+    {:ok, company} =
+      Companies.create_company(%{
+        name: "Acme AS",
+        slug: "acme"
+      })
+
+    attrs = %{
+      name: "",
+      email: "invalid-email",
+      message: ""
+    }
+
+    assert {:error, changeset} = Leads.create_lead(company, attrs)
+
+    errors = errors_on(changeset)
+
+    assert "can't be blank" in errors.name
+    assert "has invalid format" in errors.email
+    assert "can't be blank" in errors.message
+  end
+
+  describe "list_leads/1" do
+    test "returns only leads belonging to the given company" do
+      {:ok, first_company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      {:ok, second_company} =
+        Companies.create_company(%{
+          name: "Wayne Enterprises",
+          slug: "wayne"
+        })
+
+      {:ok, first_lead} =
+        Leads.create_lead(first_company, %{
+          name: "Jane Doe",
+          email: "jane@example.com",
+          message: "I need help"
+        })
+
+      {:ok, _other_lead} =
+        Leads.create_lead(second_company, %{
+          name: "Bruce Wayne",
+          email: "bruce@example.com",
+          message: "I need another service"
+        })
+
+      returned_leads = Leads.list_leads(first_company)
+
+      assert Enum.map(returned_leads, & &1.id) == [first_lead.id]
+    end
+
+    test "returns an empty list when the company has no leads" do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Empty Company",
+          slug: "empty-company"
+        })
+
+      assert Leads.list_leads(company) == []
+    end
+
+    test "returns newest leads first" do
+      {:ok, company} = Companies.create_company(%{name: "Acme AS", slug: "acme"})
+
+      {:ok, older_lead} =
+        Leads.create_lead(company, %{name: "Older", email: "old@example.com", message: "First"})
+
+      older_time = ~U[2026-01-01 10:00:00Z]
+
+      from(lead in Lead, where: lead.id == ^older_lead.id)
+      |> Repo.update_all(set: [inserted_at: older_time])
+
+      {:ok, newer_lead} =
+        Leads.create_lead(company, %{name: "Newer", email: "new@example.com", message: "Second"})
+
+      assert Enum.map(Leads.list_leads(company), & &1.id) == [newer_lead.id, older_lead.id]
+    end
+  end
+
+  describe "get_lead/2" do
+    test "returns the lead when it belongs to the company" do
+      {:ok, company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      {:ok, created_lead} =
+        Leads.create_lead(company, %{
+          name: "Jane Doe",
+          email: "jane@example.com",
+          message: "I need help"
+        })
+
+      returned_lead = Leads.get_lead(company, created_lead.id)
+
+      assert returned_lead.id == created_lead.id
+      assert returned_lead.company_id == company.id
+    end
+
+    test "returns nil when the lead belongs to another company" do
+      {:ok, first_company} =
+        Companies.create_company(%{
+          name: "Acme AS",
+          slug: "acme"
+        })
+
+      {:ok, second_company} =
+        Companies.create_company(%{
+          name: "Wayne Enterprises",
+          slug: "wayne"
+        })
+
+      {:ok, second_company_lead} =
+        Leads.create_lead(second_company, %{
+          name: "Bruce Wayne",
+          email: "bruce@example.com",
+          message: "I need help"
+        })
+
+      returned_lead = Leads.get_lead(first_company, second_company_lead.id)
+
+      assert returned_lead == nil
+    end
+  end
+
+  describe "update_lead_status/2" do
+    setup do
+      {:ok, company} = Companies.create_company(%{name: "Acme AS", slug: "acme"})
+
+      {:ok, lead} =
+        Leads.create_lead(company, %{
+          name: "Jane Doe",
+          email: "jane@example.com",
+          message: "I need help"
+        })
+
+      %{lead: lead}
+    end
+
+    test "updates the status with a supported value", %{lead: lead} do
+      assert {:ok, updated_lead} = Leads.update_lead_status(lead, "contacted")
+      assert updated_lead.status == "contacted"
+    end
+
+    test "rejects an unsupported status", %{lead: lead} do
+      assert {:error, changeset} = Leads.update_lead_status(lead, "archived")
+      assert "is invalid" in errors_on(changeset).status
+    end
+  end
+end
