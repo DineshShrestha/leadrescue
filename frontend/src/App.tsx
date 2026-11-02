@@ -8,6 +8,8 @@ import Placeholder from "./pages/Placeholder";
 import RequireAuth from "./pages/app/RequireAuth";
 import AppLayout from "./pages/app/AppLayout";
 import Dashboard from "./pages/app/Dashboard";
+import LeadIntake from "./pages/LeadIntake";
+import LeadDetail from "./pages/app/LeadDetail";
 
 export default function App() {
   return (
@@ -21,10 +23,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/privacy" element={<Placeholder title="Personvern" />} />
           <Route path="/terms" element={<Placeholder title="Vilkår" />} />
-          <Route
-            path="/r/:companySlug"
-            element={<Placeholder title="Kontaktskjema" />}
-          />
+          <Route path="/r/:companySlug" element={<LeadIntake />} />
 
           <Route
             path="/app"
@@ -35,6 +34,7 @@ export default function App() {
             }
           >
             <Route index element={<Dashboard />} />
+            <Route path="leads/:leadId" element={<LeadDetail />} />
           </Route>
 
           <Route path="*" element={<Placeholder title="Fant ikke siden" />} />

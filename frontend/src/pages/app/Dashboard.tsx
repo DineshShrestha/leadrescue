@@ -1,18 +1,59 @@
-import { useAuth } from "../../context/AuthContext";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { apiRequest } from "../../lib/api";
+import type { Lead } from "../../types/lead";
+import { StatusBadge } from "./LeadDetail";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiRequest<{ data: Lead[] }>("/api/leads")
+      .then(({ data }) => setLeads(data))
+      .catch(() => setError("Kunne ikke hente henvendelser."))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div>
       <h1 className="text-xl font-semibold text-slate-900">Oversikt</h1>
       <p className="mt-2 text-slate-600">
-        Innlogget som {user?.email} ({user?.role}).
+        Se og følg opp innkomne kundehenvendelser.
       </p>
-      <p className="mt-4 rounded-md border border-dashed border-slate-300 p-6 text-slate-500">
-        Ingen henvendelser ennå. Del LeadRescue-lenken din med en kunde, eller
-        send en test-henvendelse.
-      </p>
+      {loading && <p className="mt-6 text-slate-500">Laster henvendelser...</p>}
+      {error && (
+        <p role="alert" className="mt-6 text-red-600">
+          {error}
+        </p>
+      )}
+      {!loading && !error && leads.length === 0 && (
+        <p className="mt-6 rounded-md border border-dashed border-slate-300 p-6 text-slate-500">
+          Ingen henvendelser ennå. Del LeadRescue-lenken din med en kunde, eller
+          send en test-henvendelse.
+        </p>
+      )}
+      {leads.length > 0 && (
+        <ul className="mt-6 divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          {leads.map((lead) => (
+            <li key={lead.id}>
+              <Link
+                to={`/app/leads/${lead.id}`}
+                className="flex items-center justify-between gap-4 p-4 hover:bg-slate-50"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium text-slate-900">{lead.name}</p>
+                  <p className="mt-1 truncate text-sm text-slate-500">
+                    {lead.message}
+                  </p>
+                </div>
+                <StatusBadge status={lead.status} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
