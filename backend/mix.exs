@@ -13,6 +13,12 @@ defmodule LeadRescue.MixProject do
     ]
   end
 
+  def cli do
+    [
+      preferred_envs: [precommit: :test]
+    ]
+  end
+
   # Configuration for the OTP application.
   #
   # Type `mix help compile.app` for more information.
@@ -61,7 +67,12 @@ defmodule LeadRescue.MixProject do
       setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      precommit: [
+        "format --check-formatted",
+        "compile --warnings-as-errors",
+        "test"
+      ]
     ]
   end
 end
