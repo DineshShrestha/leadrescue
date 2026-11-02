@@ -243,4 +243,74 @@ defmodule LeadRescueWeb.LeadControllerTest do
              }
            } = json_response(conn, 404)
   end
+
+  test "PUT /api/leads/:id updates a lead status", %{conn: conn} do
+    %{company: company, user: user, lead: lead} = lead_fixture()
+    token = AuthToken.sign(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> put(~p"/api/leads/#{lead.id}", %{lead: %{status: "contacted"}})
+
+    assert %{"data" => %{"id" => lead_id, "status" => "contacted"}} =
+             json_response(conn, 200)
+
+    assert lead_id == lead.id
+    assert Leads.get_lead(company, lead.id).status == "contacted"
+  end
+
+  test "PUT /api/leads/:id rejects an invalid status", %{conn: conn} do
+    %{user: user, lead: lead} = lead_fixture()
+    token = AuthToken.sign(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> put(~p"/api/leads/#{lead.id}", %{lead: %{status: "archived"}})
+
+    assert %{"errors" => %{"status" => ["is invalid"]}} = json_response(conn, 422)
+  end
+
+  test "PUT /api/leads/:id returns 404 for another company's lead", %{conn: conn} do
+    %{user: user} = lead_fixture()
+    {:ok, other_company} = Companies.create_company(%{name: "Wayne Enterprises", slug: "wayne"})
+
+    {:ok, other_lead} =
+      Leads.create_lead(other_company, %{
+        name: "Bruce Wayne",
+        email: "bruce@example.com",
+        message: "Private enquiry"
+      })
+
+    token = AuthToken.sign(user)
+
+    conn =
+      conn
+      |> put_req_header("authorization", "Bearer #{token}")
+      |> put(~p"/api/leads/#{other_lead.id}", %{lead: %{status: "contacted"}})
+
+    assert %{"errors" => %{"detail" => "Lead not found"}} = json_response(conn, 404)
+  end
+
+  defp lead_fixture do
+    {:ok, company} = Companies.create_company(%{name: "Acme AS", slug: "acme"})
+
+    {:ok, user} =
+      Accounts.create_user(company, %{
+        email: "user@example.com",
+        password: "password1234",
+        first_name: "Ada",
+        last_name: "Lovelace"
+      })
+
+    {:ok, lead} =
+      Leads.create_lead(company, %{
+        name: "Jane Doe",
+        email: "jane@example.com",
+        message: "I need help"
+      })
+
+    %{company: company, user: user, lead: lead}
+  end
 end

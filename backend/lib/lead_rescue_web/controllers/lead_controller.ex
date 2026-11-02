@@ -55,9 +55,42 @@ defmodule LeadRescueWeb.LeadController do
     end
   end
 
+  def update(conn, %{"id" => lead_id, "lead" => %{"status" => status}}) do
+    current_user = conn.assigns.current_user
+    company = Companies.get_company(current_user.company_id)
+
+    case Leads.get_lead(company, lead_id) do
+      nil ->
+        lead_not_found(conn)
+
+      lead ->
+        case Leads.update_lead_status(lead, status) do
+          {:ok, updated_lead} ->
+            json(conn, %{data: LeadJSON.data(updated_lead)})
+
+          {:error, changeset} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{errors: ChangesetJSON.errors(changeset)})
+        end
+    end
+  end
+
+  def update(conn, _params) do
+    conn
+    |> put_status(:bad_request)
+    |> json(%{errors: %{detail: "Missing lead status"}})
+  end
+
   defp company_not_found(conn) do
     conn
     |> put_status(:not_found)
     |> json(%{errors: %{detail: "Company not found"}})
+  end
+
+  defp lead_not_found(conn) do
+    conn
+    |> put_status(:not_found)
+    |> json(%{errors: %{detail: "Lead not found"}})
   end
 end

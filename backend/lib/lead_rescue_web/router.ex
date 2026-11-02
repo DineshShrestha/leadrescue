@@ -34,6 +34,7 @@ defmodule LeadRescueWeb.Router do
     get "/account", AccountController, :show
     get "/leads", LeadController, :index
     get "/leads/:id", LeadController, :show
+    put "/leads/:id", LeadController, :update
     get "/companies/:id", CompanyController, :show
     put "/companies/:id", CompanyController, :update
   end

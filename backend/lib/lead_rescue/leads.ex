@@ -21,4 +21,10 @@ defmodule LeadRescue.Leads do
       company_id: company.id
     )
   end
+
+  def update_lead_status(%Lead{} = lead, status) do
+    lead
+    |> Lead.status_changeset(%{status: status})
+    |> Repo.update()
+  end
 end

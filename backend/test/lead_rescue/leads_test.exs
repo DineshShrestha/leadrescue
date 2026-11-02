@@ -145,4 +145,29 @@ defmodule LeadRescue.LeadsTest do
       assert returned_lead == nil
     end
   end
+
+  describe "update_lead_status/2" do
+    setup do
+      {:ok, company} = Companies.create_company(%{name: "Acme AS", slug: "acme"})
+
+      {:ok, lead} =
+        Leads.create_lead(company, %{
+          name: "Jane Doe",
+          email: "jane@example.com",
+          message: "I need help"
+        })
+
+      %{lead: lead}
+    end
+
+    test "updates the status with a supported value", %{lead: lead} do
+      assert {:ok, updated_lead} = Leads.update_lead_status(lead, "contacted")
+      assert updated_lead.status == "contacted"
+    end
+
+    test "rejects an unsupported status", %{lead: lead} do
+      assert {:error, changeset} = Leads.update_lead_status(lead, "archived")
+      assert "is invalid" in errors_on(changeset).status
+    end
+  end
 end
